@@ -4,8 +4,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by wei4liverpool on 9/11/15.
- * 线程工厂;
+ * Created by wei4liverpool on 9/11/15. 线程工厂;
  */
 public class ProcessThreadFactory implements ThreadFactory {
 
@@ -13,14 +12,12 @@ public class ProcessThreadFactory implements ThreadFactory {
   private String threadPrefix;
   private ThreadGroup group;
 
-  ProcessThreadFactory() {
+  public ProcessThreadFactory() {
     threadPrefix = "process_thread_";
     SecurityManager s = System.getSecurityManager();
     group = group != null ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
 
   }
-
-
 
   @Override
   public Thread newThread(Runnable r) {
@@ -29,7 +26,6 @@ public class ProcessThreadFactory implements ThreadFactory {
     if (t.isDaemon()) {
       t.setDaemon(false);
     }
-
     return t;
   }
 }
