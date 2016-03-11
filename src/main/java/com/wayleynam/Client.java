@@ -16,7 +16,7 @@ public class Client {
 
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
         AsynchronousSocketChannel channel= AsynchronousSocketChannel.open();
-        Future<Void> future=channel.connect(new InetSocketAddress("localhost", 8080));
+        Future<Void> future=channel.connect(new InetSocketAddress("localhost", 9090));
         //等待任务的完成直到拿到数据
         future.get();
         final ByteBuffer byteBuffer=ByteBuffer.allocate(100);

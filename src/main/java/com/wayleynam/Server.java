@@ -31,8 +31,8 @@ public class Server {
     AsynchronousChannelGroup group =
         AsynchronousChannelGroup.withThreadPool(Executors.newFixedThreadPool(3));
     final AsynchronousServerSocketChannel channel =
-        AsynchronousServerSocketChannel.open(group).bind(new InetSocketAddress("localhost", 8080));
-    //使用hanlder方式处理处理数据
+        AsynchronousServerSocketChannel.open(group).bind(new InetSocketAddress("localhost", 9090));
+    // 使用hanlder方式处理处理数据
     channel.accept(null, new CompletionHandler<AsynchronousSocketChannel, Void>() {
       @Override
       public void completed(AsynchronousSocketChannel result, Void attachment) {
@@ -46,7 +46,6 @@ public class Server {
         } catch (Exception e) {
           e.printStackTrace();
         }
-
       }
 
       @Override

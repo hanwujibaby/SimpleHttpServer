@@ -1,12 +1,17 @@
 package com.wayleynam.core;
 
+import com.sun.corba.se.pept.transport.ByteBufferPool;
+import com.wayleynam.http.ByteBufferFactory;
 import com.wayleynam.http.ProcessThreadFactory;
 import com.wayleynam.http.SocketAcceptorHandler;
 import com.wayleynam.http.SocketReadHanler;
 import com.wayleynam.utils.PropertisUtil;
+import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.pool.impl.GenericObjectPoolFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -34,6 +39,9 @@ public class HttpServer {
   private volatile boolean inited;
 
 
+  private GenericObjectPool<ByteBuffer> genericObjectPool;
+
+
   void init() {
     try {
       acceptorHandler = new SocketAcceptorHandler(this);
@@ -42,6 +50,21 @@ public class HttpServer {
       int proccessorNum = Runtime.getRuntime().availableProcessors();
       channelGroup = AsynchronousChannelGroup.withCachedThreadPool(workGroup, 1);
       serverSocket = AsynchronousServerSocketChannel.open(channelGroup);
+
+      int maxActive = PropertisUtil.getInteger("server.channel.maxActive");
+      int maxWait = PropertisUtil.getInteger("server.channel.maxWait");
+      GenericObjectPool.Config config = new GenericObjectPool.Config();
+      config.maxActive = maxActive;
+      config.maxWait = maxWait;
+      config.testOnBorrow = false;
+      config.testOnReturn = false;
+      config.whenExhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_FAIL;
+      config.timeBetweenEvictionRunsMillis = 90000;
+      config.testWhileIdle = false;
+      // 设定连接池
+      genericObjectPool =
+          new GenericObjectPool<ByteBuffer>(new ByteBufferFactory(true, 8192), config);
+
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -74,5 +97,19 @@ public class HttpServer {
     accept();
   }
 
+  public ByteBuffer borrowObject() {
+    try {
+      return genericObjectPool.borrowObject();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+
+  public static void main(String[] args) {
+    byte b= (byte) 11111011;
+    System.out.println(Integer.toBinaryString(255));
+  }
 
 }

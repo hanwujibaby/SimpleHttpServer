@@ -23,6 +23,7 @@ public class SocketAcceptorHandler implements CompletionHandler<AsynchronousSock
   @Override
   public void completed(AsynchronousSocketChannel result, Object attachment) {
     log.info("connection accepted");
+
     this.httpServer.accept();
   }
 
