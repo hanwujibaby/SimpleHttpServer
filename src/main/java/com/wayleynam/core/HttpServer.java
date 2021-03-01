@@ -23,93 +23,93 @@ import java.util.concurrent.Executors;
  */
 public class HttpServer {
 
-  private ExecutorService workGroup;
+    private ExecutorService workGroup;
 
-  private AsynchronousChannelGroup channelGroup;
-  // 服务器的socket channel
-  private AsynchronousServerSocketChannel serverSocket;
-  private SocketAcceptorHandler acceptorHandler;
+    private AsynchronousChannelGroup channelGroup;
+    // 服务器的socket channel
+    private AsynchronousServerSocketChannel serverSocket;
+    private SocketAcceptorHandler acceptorHandler;
 
-  /**
-   * http的socket
-   */
-  private SocketReadHanler socketReadHanler;
+    /**
+     * http的socket
+     */
+    private SocketReadHanler socketReadHanler;
 
-  private volatile boolean started;
-  private volatile boolean inited;
-
-
-  private GenericObjectPool<ByteBuffer> genericObjectPool;
+    private volatile boolean started;
+    private volatile boolean inited;
 
 
-  void init() {
-    try {
-      acceptorHandler = new SocketAcceptorHandler(this);
-      workGroup = Executors.newFixedThreadPool(PropertisUtil.getInteger("server.socket.threadNum"),
-          new ProcessThreadFactory());
-      int proccessorNum = Runtime.getRuntime().availableProcessors();
-      channelGroup = AsynchronousChannelGroup.withCachedThreadPool(workGroup, 1);
-      serverSocket = AsynchronousServerSocketChannel.open(channelGroup);
+    private GenericObjectPool<ByteBuffer> genericObjectPool;
 
-      int maxActive = PropertisUtil.getInteger("server.channel.maxActive");
-      int maxWait = PropertisUtil.getInteger("server.channel.maxWait");
-      GenericObjectPool.Config config = new GenericObjectPool.Config();
-      config.maxActive = maxActive;
-      config.maxWait = maxWait;
-      config.testOnBorrow = false;
-      config.testOnReturn = false;
-      config.whenExhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_FAIL;
-      config.timeBetweenEvictionRunsMillis = 90000;
-      config.testWhileIdle = false;
-      // 设定连接池
-      genericObjectPool =
-          new GenericObjectPool<ByteBuffer>(new ByteBufferFactory(true, 8192), config);
 
-    } catch (IOException e) {
-      e.printStackTrace();
+    void init() {
+        try {
+            acceptorHandler = new SocketAcceptorHandler(this);
+            workGroup = Executors.newFixedThreadPool(PropertisUtil.getInteger("server.socket.threadNum"),
+                    new ProcessThreadFactory());
+            int proccessorNum = Runtime.getRuntime().availableProcessors();
+            channelGroup = AsynchronousChannelGroup.withCachedThreadPool(workGroup, 1);
+            serverSocket = AsynchronousServerSocketChannel.open(channelGroup);
+
+            int maxActive = PropertisUtil.getInteger("server.channel.maxActive");
+            int maxWait = PropertisUtil.getInteger("server.channel.maxWait");
+            GenericObjectPool.Config config = new GenericObjectPool.Config();
+            config.maxActive = maxActive;
+            config.maxWait = maxWait;
+            config.testOnBorrow = false;
+            config.testOnReturn = false;
+            config.whenExhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_FAIL;
+            config.timeBetweenEvictionRunsMillis = 90000;
+            config.testWhileIdle = false;
+            // 设定连接池
+            genericObjectPool =
+                    new GenericObjectPool<ByteBuffer>(new ByteBufferFactory(true, 8192), config);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        inited = true;
+
     }
 
-    inited = true;
-
-  }
-
-  public void accept() {
-    if (started) {
-      serverSocket.accept(null, this.acceptorHandler);
-    }
-  }
-
-
-  public void start() {
-    if (inited == false)
-      init();
-    if (started)
-      return;
-
-    try {
-      serverSocket.bind(new InetSocketAddress(PropertisUtil.getInteger("server.socket.port")), 100);
-    } catch (IOException e) {
-      e.printStackTrace();
+    public void accept() {
+        if (started) {
+            serverSocket.accept(null, this.acceptorHandler);
+        }
     }
 
-    started = true;
 
-    accept();
-  }
+    public void start() {
+        if (inited == false)
+            init();
+        if (started)
+            return;
 
-  public ByteBuffer borrowObject() {
-    try {
-      return genericObjectPool.borrowObject();
-    } catch (Exception e) {
-      e.printStackTrace();
+        try {
+            serverSocket.bind(new InetSocketAddress(PropertisUtil.getInteger("server.socket.port")), 100);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        started = true;
+
+        accept();
     }
-    return null;
-  }
+
+    public ByteBuffer borrowObject() {
+        try {
+            return genericObjectPool.borrowObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 
-  public static void main(String[] args) {
-    byte b= (byte) 11111011;
-    System.out.println(Integer.toBinaryString(255));
-  }
+    public static void main(String[] args) {
+        byte b = (byte) 11111011;
+        System.out.println(Integer.toBinaryString(255));
+    }
 
 }
