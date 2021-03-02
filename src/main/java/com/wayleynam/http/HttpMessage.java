@@ -20,11 +20,9 @@ public interface HttpMessage {
 
     boolean containsHeader(String header);
 
-
     Set<String> getHeaderNames();
 
     void addHeader(String name, Object value);
-
 
     void setHeader(String name, Object value);
 
