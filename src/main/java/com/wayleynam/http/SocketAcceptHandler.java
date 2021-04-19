@@ -22,7 +22,6 @@ public class SocketAcceptHandler implements CompletionHandler<AsynchronousSocket
     private long timeout;
     private SocketReadHandler socketReadHandler;
     private ProtocolProcessor processor;
-
     private boolean isClosed = false;
 
     private InetAddress remoteAddress;

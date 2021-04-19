@@ -23,7 +23,6 @@ public class SocketSession {
     private Boolean isClosed = false;
     private InetAddress inetAddress;
 
-
     public SocketSession(HttpServer httpServer) {
         byteBuffer = httpServer.borrowObject();
     }
@@ -32,7 +31,6 @@ public class SocketSession {
     public void read() {
         byteBuffer.clear();
         //cketReadHanler=
-
     }
 
 

@@ -3,12 +3,15 @@ package com.wayleynam.core;
 import com.sun.corba.se.pept.transport.ByteBufferPool;
 import com.wayleynam.http.ByteBufferFactory;
 import com.wayleynam.http.ProcessThreadFactory;
-import com.wayleynam.http.SocketAcceptorHandler;
 import com.wayleynam.http.SocketReadHanler;
 import com.wayleynam.utils.PropertisUtil;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPoolFactory;
+import org.slf4j.Logger;
 
+import javax.xml.stream.FactoryConfigurationError;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -23,11 +26,27 @@ import java.util.concurrent.Executors;
  */
 public class HttpServer {
 
+    private static final Log logger = LogFactory.getLog(HttpServer
+            .class);
+
+    private ExecutorService channrlWorkers;
+
+    private ExecutorService processWorkers;
+
     private ExecutorService workGroup;
 
-    private AsynchronousChannelGroup channelGroup;
+    private AsynchronousChannelGroup workerGroup;
+
     // 服务器的socket channel
     private AsynchronousServerSocketChannel serverSocket;
+
+    private GenericObjectPool<ByteBuffer> byteBufferPool;
+
+    private long timeout;
+
+    private Http
+
+
     private SocketAcceptorHandler acceptorHandler;
 
     /**
