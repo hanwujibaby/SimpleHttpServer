@@ -1,9 +1,10 @@
 package com.wayleynam.http;
 
 import com.wayleynam.utils.ServerConfig;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.velocity.Template;
+import org.apache.velocity.app.Velocity;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ser.CustomSerializerFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -24,16 +25,17 @@ import java.util.regex.Pattern;
  */
 public final class ControllerMessageHandler extends HttpMessageHandler {
 
-    private static final Log logger = LogFactory.getLog(ControllerMessageHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ControllerMessageHandler.class);
 
     private static final Pattern PATH_VARIABLE_PATTERN = Pattern.compile("\\{(\\w+)\\}|\\*");
 
     private ClassPathXmlApplicationContext context;
 
     private Map<String, MethodHandler> mappingMethods = new HashMap<String, MethodHandler>();
+
     private Map<String, Template> templates = new HashMap<String, Template>();
 
-    private List<MethodHandler> matcherLists = new ArrayList<MethodHandler>();
+    private List<MethodHandler> matcherMethods = new ArrayList<MethodHandler>();
 
     private ObjectMapper deafultObjectMapper;
 
@@ -120,8 +122,20 @@ public final class ControllerMessageHandler extends HttpMessageHandler {
                 methodHandler.setPathPattern(Pattern.compile(matched), pathVariables.toArray(new String[0]));
             }
             methodHandler.setObjectMapper(deafultObjectMapper);
-            methodHandler.setParameterTypes(clazz,method);
-            if(methodHandler.)
+            methodHandler.setParameterTypes(clazz, method);
+            if (methodHandler.isMatcherHandler()) {
+                matcherMethods.add(methodHandler);
+            } else {
+                mappingMethods.put(mapping, methodHandler);
+            }
+
+            if (methodHandler.isVelocityTemplate()) {
+                String name = methodHandler.getTemplateName();
+                Template template = Velocity.getTemplate(methodHandler.getTemplateName());
+                templates.put(name, template);
+            }
+
+            logger.info("mapped method({},{}) " + mapping, clazz.getSimpleName(), method.getName());
 
         }
 
@@ -130,7 +144,45 @@ public final class ControllerMessageHandler extends HttpMessageHandler {
 
 
     @Override
-    public byte[] service(HttpRequest httpRequest, HttpResponse httpResponse) throws Throwable {
+    public byte[] service(HttpRequest request, HttpResponse response) throws Throwable {
+        try {
+            String queryString = request.getQueryString();
+            MethodHandler hanlder = mappingMethods.get(queryString);
+            if (hanlder == null) {
+                for (MethodHandler mm : matcherMethods) {
+                    Matcher m = mm.getPattern().matcher(queryString);
+                    if (m.find()) {
+                        int index = 1;
+                        DefaultHttpRequest defaultHttpRequest = (DefaultHttpRequest) request;
+                        for (String key : mm.getKeys()) {
+                            String value = m.group(index);
+                            defaultHttpRequest.addParameter(key, value);
+                            index++;
+                        }
+                        hanlder = mm;
+                        break;
+                    }
+                }
+            }
+
+            Object o = hanlder != null ? hanlder.getObject() : null;
+            if (globalInterceptor != null && globalInterceptor.beforeHandler(request, response, o) == false){
+                return response.getContent();
+            }
+
+            if(hanlder==null){
+                throw new HttpException
+            }
+
+
+        } catch (Throwable t) {
+            if (this.exceptionHandler != null) {
+                return this.exceptionHandler.resolveException(httpRequest, httpResponse, t);
+            } else {
+                throw t;
+            }
+
+        }
         return new byte[0];
     }
 }

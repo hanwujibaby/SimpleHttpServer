@@ -22,8 +22,8 @@ public class MethodHandler {
     private RequestParamType[] requestParamType;
     private int parameterLength;
     private ObjectMapper objectMapper;
-    private boolean matcherHandler;
     private Pattern pattern;
+    private boolean matcherHandler = false;
     private String[] keys;
     private boolean isVelocityTemplate;
     private String templateName;
@@ -35,7 +35,7 @@ public class MethodHandler {
         this.isResponseBody = method.isAnnotationPresent(ResponseBody.class);
 
         if (this.isResponseBody && this.isResponseBody) {
-            throw new RuntimeException(object.getClass().getName() + " method " + method.getName() + " can not be annotation present both VelocityTemplate and ResponseBody")
+            throw new RuntimeException(object.getClass().getName() + " method " + method.getName() + " can not be annotation present both VelocityTemplate and ResponseBody");
         }
         XssFilter filter = method.getAnnotation(XssFilter.class);
         this.xssFilter = filter == null ? true : filter.value();
@@ -46,6 +46,12 @@ public class MethodHandler {
         this.pattern = pathPattern;
         this.keys = keys;
         this.matcherHandler = true;
+    }
+
+
+    public boolean isMatcherHandler() {
+        return matcherHandler;
+
     }
 
     public void setParameterTypes(Class<?> clazz, Method method) {
@@ -89,8 +95,8 @@ public class MethodHandler {
                     type = RequestParamType.Type.CHAR;
                 } else if (classType == Byte.class || classType == byte.class) {
                     type = RequestParamType.Type.BYTE;
-                }else {
-                    throw new RuntimeException(clazz.getSimpleName()+"."+method.getName()+" param["+i+"] is not support method ioc");
+                } else {
+                    throw new RuntimeException(clazz.getSimpleName() + "." + method.getName() + " param[" + i + "] is not support method ioc");
                 }
             }
         }
@@ -132,6 +138,10 @@ public class MethodHandler {
 
     public ObjectMapper getObjectMapper() {
         return objectMapper;
+    }
+
+    public Object getObject() {
+        return object;
     }
 
     public void setObjectMapper(ObjectMapper objectMapper) {

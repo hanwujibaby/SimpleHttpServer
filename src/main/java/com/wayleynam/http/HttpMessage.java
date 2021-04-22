@@ -32,4 +32,6 @@ public interface HttpMessage {
 
     HttpVersion getProtocolVersion();
 
+    void clearHeaders();
+
 }
