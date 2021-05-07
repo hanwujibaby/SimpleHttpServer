@@ -3,6 +3,9 @@ package com.wayleynam.http;
 import com.wayleynam.controller.MethodHandler;
 import com.wayleynam.utils.HttpResponseStatus;
 import com.wayleynam.utils.ServerConfig;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.velocity.VelocityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.velocity.Template;
@@ -12,6 +15,10 @@ import org.codehaus.jackson.map.ser.CustomSerializerFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Controller;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -20,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.GZIPOutputStream;
 
 
 /***
@@ -176,17 +185,83 @@ public final class ControllerMessageHandler extends HttpMessageHandler {
                 throw new HttpException(HttpResponseStatus.NOT_FOUND);
             }
 
-            Object result=hanlder
+            Object result = hanlder.invoke(request, response);
+            byte[] bytes = null;
+            if (hanlder.isVelocityTemplate()) {
+                Map<?, ?> params = null;
+                if (result instanceof Map) {
+                    params = (Map<?, ?>) result;
+                }
 
+                VelocityContext context = new VelocityContext(params);
+                Template template = templates.get(hanlder.getTemplateName());
+                if (template == null) {
+                    throw new RuntimeException("can not find the velocity template:" + hanlder.getTemplateName());
+                }
 
+                ByteArrayOutputStream os = new ByteArrayOutputStream(4096);
+                OutputStream stream = os;
+                String acceptEncoding = request.getHeader("Accept-Encoding");
+                String[] arr = StringUtils.split(acceptEncoding, ',');
+                String encoding = null;
+                int type = 0;
+                for (String a : arr) {
+                    if ("gzip".equals(a) && encoding == null) {
+                        type = 1;
+                    } else if ("deflate".equals(a)) {
+                        type = 2;
+                        break;
+                    }
+                }
+
+                if (type == 2) {
+                    stream = new DeflaterOutputStream(stream);
+                    response.addHeader(HttpHeaders.Names.CONTENT_ENCODING, "defalte");
+                } else if (type == 1) {
+                    stream = new GZIPOutputStream(stream);
+                    response.addHeader(HttpHeaders.Names.CONTENT_ENCODING, "gzip");
+                }
+
+                Writer writer = new PrintWriter(stream);
+                template.merge(context, writer);
+                writer.flush();
+                writer.close();
+                bytes = os.toByteArray();
+                stream.close();
+            } else if (result != null) {
+                if (hanlder.isResponseBody()) {
+                    response.setHeader(HttpHeaders.Names.CONTENT_TYPE, this.jsonContentType);
+                    if (hanlder.isXssFilter()) {
+                        bytes = xssFilterObjectMapper.writeValueAsBytes(result);
+                    } else {
+                        bytes = deafultObjectMapper.writeValueAsBytes(result);
+                    }
+
+                }
+            } else {
+                if (result instanceof byte[]) {
+                    bytes = (byte[]) result;
+                } else {
+                    String str = result.toString();
+                    if (hanlder.isXssFilter()) {
+                        bytes = org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(str).getBytes(charset);
+                    } else {
+                        bytes = str.getBytes(charset);
+                    }
+                }
+            }
+
+            if (globalInterceptor != null) {
+                globalInterceptor.afterHandler(request, response, hanlder);
+            }
+            return bytes;
         } catch (Throwable t) {
             if (this.exceptionHandler != null) {
-                return this.exceptionHandler.resolveException(httpRequest, httpResponse, t);
+                return this.exceptionHandler.resolveException(request, response, t);
             } else {
                 throw t;
             }
 
         }
-        return new byte[0];
     }
 }
