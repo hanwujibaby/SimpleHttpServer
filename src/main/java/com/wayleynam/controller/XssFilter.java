@@ -1,4 +1,4 @@
-package com.wayleynam.http;
+package com.wayleynam.controller;
 
 
 import java.lang.annotation.ElementType;
@@ -8,6 +8,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface VelocityTemplate {
-    String value();
+public @interface XssFilter {
+    boolean value() default true;
 }

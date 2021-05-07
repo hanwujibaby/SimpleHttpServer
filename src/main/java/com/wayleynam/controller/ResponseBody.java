@@ -1,5 +1,4 @@
-package com.wayleynam.http;
-
+package com.wayleynam.controller;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,5 +1,7 @@
 package com.wayleynam.http;
 
+import com.wayleynam.controller.MethodHandler;
+import com.wayleynam.utils.HttpResponseStatus;
 import com.wayleynam.utils.ServerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,13 +168,15 @@ public final class ControllerMessageHandler extends HttpMessageHandler {
             }
 
             Object o = hanlder != null ? hanlder.getObject() : null;
-            if (globalInterceptor != null && globalInterceptor.beforeHandler(request, response, o) == false){
+            if (globalInterceptor != null && globalInterceptor.beforeHandler(request, response, o) == false) {
                 return response.getContent();
             }
 
-            if(hanlder==null){
-                throw new HttpException
+            if (hanlder == null) {
+                throw new HttpException(HttpResponseStatus.NOT_FOUND);
             }
+
+            Object result=hanlder
 
 
         } catch (Throwable t) {
