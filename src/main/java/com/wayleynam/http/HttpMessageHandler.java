@@ -19,5 +19,4 @@ public abstract class HttpMessageHandler {
 
     public abstract byte[] service(HttpRequest httpRequest, HttpResponse httpResponse) throws Throwable;
 
-
 }

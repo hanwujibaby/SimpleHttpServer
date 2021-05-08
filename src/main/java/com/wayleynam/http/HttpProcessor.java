@@ -4,15 +4,18 @@ import com.wayleynam.core.HttpServer;
 import com.wayleynam.core.SocketSession;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
 
 public class HttpProcessor implements Runnable, ProtocolProccesor, CompletionHandler<Integer, ByteBuffer> {
-    private Log log = LogFactory.getLog(HttpProcessor.class);
+    private Logger logger = LoggerFactory.getLogger(HttpProcessor.class);
     private final SocketSession session;
     private final HttpServer server;
     private final HttpMessageHandler dynamicHandler;
+    private final HttpMes
 
     public HttpProcessor(SocketSession session, HttpServer server) {
         this.session = session;

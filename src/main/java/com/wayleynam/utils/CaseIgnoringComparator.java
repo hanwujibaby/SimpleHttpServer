@@ -1,8 +1,9 @@
 package com.wayleynam.utils;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
-public class CaseIgnoringComparator implements Comparable<String>, Serializable {
+public class CaseIgnoringComparator implements Comparator<String>, Serializable {
     private static final long serialVersionUID = 4582133183775373862L;
 
     public static final CaseIgnoringComparator INSTANCE = new CaseIgnoringComparator();
@@ -11,6 +12,7 @@ public class CaseIgnoringComparator implements Comparable<String>, Serializable 
         super();
     }
 
+    @Override
     public int compare(String o1, String o2) {
         return o1.compareToIgnoreCase(o2);
     }
@@ -19,8 +21,4 @@ public class CaseIgnoringComparator implements Comparable<String>, Serializable 
         return INSTANCE;
     }
 
-    @Override
-    public int compareTo(String o) {
-        return 0;
-    }
 }
