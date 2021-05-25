@@ -1,6 +1,7 @@
 package com.wayleynam.http;
 
 import com.wayleynam.core.HttpServer;
+import com.wayleynam.core.ProtocolProcessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

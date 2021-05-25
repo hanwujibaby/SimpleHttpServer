@@ -34,12 +34,14 @@ public class HttpMessageSerializer {
 
     public boolean decode(ByteBuffer buffer, HttpProcessor processor) {
         boolean finished = false;
-        DefaultHttpRequest request=null;
+        DefaultHttpRequest request = null;
+        /*
         try{
             buffer.flip();
-            HttpSocketStatus status=processor.gets
-
+            //HttpSocketStatus status=processor.gets
         }
+        */
+        return false;
 
     }
 }
